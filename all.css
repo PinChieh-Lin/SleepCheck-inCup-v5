@@ -127,6 +127,17 @@
     .score-badge, .day-pill, .week-pill {
       display:inline-flex; align-items:center; justify-content:center; min-width:40px; padding:.3rem .55rem; border-radius:999px; font-weight:800; font-size:.88rem;
     }
+    .day-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: .2rem .38rem;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: .78rem;
+  line-height: 1;
+}
     .badge-sleep { background:var(--sleep-light); color:var(--sleep-dark); }
     .badge-cal { background:var(--calorie-light); color:var(--calorie-dark); }
     .badge-total { background:#dcfce7; color:#166534; }
@@ -141,7 +152,15 @@
     .legend-item { display:inline-flex; align-items:center; gap:.35rem; font-size:.8rem; color:var(--text-muted); }
     .legend-dot { width:12px; height:12px; border-radius:999px; }
     .day-score-cell { min-width:72px; text-align:center; }
-    .day-score-wrap { display:flex; flex-direction:column; align-items:center; gap:.3rem; }
+    .day-score-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
     .sleep-hit { background:var(--sleep-light); color:var(--sleep-dark); }
     .sleep-miss { background:#e5e7eb; color:#6b7280; }
     .cal-progress { background:var(--calorie-light); color:var(--calorie-dark); }
@@ -198,4 +217,25 @@
   font-weight: bold !important;
   min-height: 44px;
   background: #fff !important;
+}
+
+
+
+
+#daily-score-table .sticky-head,
+#daily-score-table .sticky-col {
+  min-width: 180px;
+  width: 180px;
+}
+
+#daily-score-table .sticky-col {
+  white-space: normal;
+  word-break: break-word;
+}
+@media (max-width: 576px) {
+  #daily-score-table .sticky-head,
+  #daily-score-table .sticky-col {
+    min-width: 100px;
+    width: 100px;
+  }
 }
