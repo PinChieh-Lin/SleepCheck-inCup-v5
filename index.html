@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <title>第五屆睡神是我盃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="all.css">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+</head>
+<body>
+  <div class="header-banner">
+    <h1>🌙 睡神是我盃 ☀️</h1>
+    <p>第五屆 · 睡眠與卡路里雙王爭霸（2026/06/01～2026/08/01）</p>
+  </div>
+
+  <div class="nav-container">
+    <ul class="nav nav-pills" id="mainTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-person" data-bs-toggle="pill" data-bs-target="#view-person" type="button" role="tab">✍️ 打卡紀錄</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-summary" data-bs-toggle="pill" data-bs-target="#view-summary" type="button" role="tab">🏆 戰況總表</button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="container pb-4">
+    <main class="px-1">
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="view-person" role="tabpanel">
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2 ps-1">
+              <div class="text-muted small fw-bold">選擇選手</div>
+              <button class="btn btn-outline-soft btn-sm" id="btn-rename-person" type="button">✏️ 改名</button>
+            </div>
+            <div class="person-scroll" id="person-list"><div class="text-muted small">載入中...</div></div>
+          </div>
+
+          <div class="card-soft mb-4">
+  <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+    <div class="section-title mb-0"><span class="emoji-bg">📅</span> 今日日期</div>
+
+    <div class="date-switcher">
+      <button class="date-nav-btn" id="btn-prev-date" type="button">◀</button>
+      <button class="date-nav-btn" id="btn-next-date" type="button">▶</button>
+      <button class="date-nav-btn today-btn" id="btn-today-date" type="button">今天</button>
+      <input type="date" id="person-date" class="form-control date-input-legacy">
+    </div>
+  </div>
+</div>
+
+          <div class="card-soft card-sleep mb-4">
+            <div class="section-title mb-3"><span class="emoji-bg">💤</span> 睡眠打卡</div>
+            <label class="check-container mb-3">
+              <input type="checkbox" id="sleep-7h" class="custom-checkbox">
+              <div>
+                <div class="fw-bold" style="color:var(--sleep-text);font-size:1.05rem;">我今天睡滿 7 小時了！</div>
+                <div class="text-muted small mt-1">睡滿 7 小時或手錶分數 80 以上，當日可得 1 分</div>
+              </div>
+            </label>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label text-muted small fw-bold">實際睡眠時數 (可空白)</label>
+                <input type="number" id="sleep-hours" class="form-control" placeholder="例如: 7.5" step="0.1">
+              </div>
+              <div class="col-6">
+                <label class="form-label text-muted small fw-bold">手錶睡眠分數 (可空白)</label>
+                <input type="number" id="sleep-score" class="form-control" placeholder="例如: 85" step="0.1">
+              </div>
+            </div>
+            <button class="btn btn-sleep w-100 py-3" id="btn-save-sleep">儲存睡眠紀錄</button>
+          </div>
+
+          <div class="card-soft card-calorie mb-4">
+            <div class="section-title mb-3"><span class="emoji-bg">🔥</span> 運動熱量紀錄</div>
+            <div class="row g-2 mb-3">
+              <div class="col-7">
+                <label class="form-label text-muted small fw-bold">運動項目</label>
+                <input type="text" id="ex-item" class="form-control" placeholder="例: 深蹲/跑步">
+              </div>
+              <div class="col-5">
+                <label class="form-label text-muted small fw-bold">消耗大卡</label>
+                <input type="number" id="ex-cal" class="form-control" placeholder="kcal" step="0.1">
+              </div>
+            </div>
+            <button class="btn btn-calorie w-100 py-3 mb-4" id="btn-add-exercise">➕ 記錄這筆運動</button>
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+              <h6 class="fw-bold text-muted mb-0">📋 今日明細</h6>
+              <div class="fw-bold" style="color:var(--calorie-dark);font-size:1.1rem;" id="total-calories">0 大卡</div>
+            </div>
+            <div id="exercise-list"></div>
+          </div>
+
+          
+          <div class="card-soft mb-4">
+  <div class="section-title mb-3">
+    <span class="emoji-bg">🗂️</span> 個人歷史紀錄
+  </div>
+  <p class="mini-note mb-3">切換選手後，顯示該選手本屆所有每日睡眠與運動紀錄。</p>
+  <div class="table-container">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th class="text-start ps-3">日期</th>
+          <th>睡滿7h</th>
+          <th>睡眠時數</th>
+          <th>手錶分數</th>
+          <th>運動項目</th>
+          <th class="pe-3">總熱量</th>
+        </tr>
+      </thead>
+      <tbody id="history-body">
+        <tr><td colspan="6" class="text-center text-muted py-4">尚無資料</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="card-soft card-body-score mb-4">
+            <div class="section-title mb-3"><span class="emoji-bg">💪</span> 結算體態分數</div>
+            <p class="text-muted small">活動結束後填入最終體態分數，系統會直接納入總積分排行。</p>
+            <div class="d-flex gap-2">
+              <input type="number" id="body-final-score" class="form-control" placeholder="輸入分數">
+              <button class="btn btn-body px-4" id="btn-save-body" type="button">儲存</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="view-summary" role="tabpanel">
+          <div class="card-soft card-summary mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+              <div class="section-title mb-0"><span class="emoji-bg">🏆</span> 最終總積分排行</div>
+              <div class="date-range-bar">
+                <span class="mini-note">比賽期間：2026/06/01（一）～ 2026/08/01（六）</span>
+                <button class="btn btn-sm btn-light rounded-pill border" id="btn-refresh-leaderboard">🔄 整理</button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="table align-middle text-center">
+                <thead>
+                  <tr>
+                    <th class="text-start ps-3 sticky-head">選手</th>
+                    <th>睡眠總分</th>
+                    <th>運動總分</th>
+                    <th>體態分</th>
+                    <th class="pe-3">總積分</th>
+                  </tr>
+                </thead>
+                <tbody id="leaderboard-body"></tbody>
+              </table>
+            </div>
+            <div class="legend">
+              <div class="legend-item"><span class="legend-dot" style="background:var(--sleep-light);"></span> 睡眠每週最多 5 分</div>
+              <div class="legend-item"><span class="legend-dot" style="background:var(--calorie-light);"></span> 運動每週最多 4 分</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#dcfce7;"></span> 體態分直接採最終輸入分數</div>
+            </div>
+          </div>
+
+          <div class="card-soft card-summary mb-4">
+  <div class="section-title mb-3"><span class="emoji-bg">📊</span> 每日分數總表</div>
+  <p class="mini-note mb-3">每日顯示：睡眠得分（0/1）、該週截至當日的運動進度分（0～4）、以及當日顯示用總分。</p>
+  <div class="table-container">
+    <table class="table align-middle text-center" id="daily-score-table">
+      <thead id="daily-score-head"></thead>
+      <tbody id="daily-score-body"></tbody>
+      <tfoot id="daily-score-foot"></tfoot>
+    </table>
+  </div>
+</div>
+
+         
+
+          <div class="card-soft card-summary mb-4">
+            <div class="section-title mb-3"><span class="emoji-bg">🔥</span> 每週卡洛里上限 +4 分提示</div>
+            <div class="summary-grid" id="weekly-calorie-list"></div>
+          </div>
+
+          <div class="card-soft rules-box mb-4">
+            <div class="section-title mb-3"><span class="emoji-bg" style="background:#fff;">📜</span> 第五屆計分規則</div>
+            <ul class="text-muted small lh-lg mb-0 ps-3">
+              <li><strong>比賽日期：</strong>2026/06/01（一）～ 2026/08/01（六）。</li>
+              <li><strong>睡眠分：</strong>每週一到週日計算；睡滿 7 小時或手錶分數 80 以上，當日得 1 分；同日最多 1 分，每週上限 5 分。</li>
+              <li><strong>睡眠資料保留：</strong>系統保留每日睡眠時數與手錶分數，手錶分數可空白，不做上下限驗證。</li>
+              <li><strong>運動分：</strong>每週一到週日累積熱量，每滿 500 卡得 1 分，每週最多 4 分，2000 卡即滿分。</li>
+              <li><strong>體態分：</strong>沿用最終輸入分數，直接納入總積分。</li>
+              <li><strong>總積分：</strong>睡眠總分 + 運動總分 + 體態分。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://llsdqlfesqxmovcqhtnp.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Ce93FdjBXdjIB_6o1Tt_xA_BTWRBWCv';
+    const { createClient } = window.supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const CHALLENGE_NAME = '第五屆睡神是我盃';
+    const COMPETITION_START = '2026-06-01';
+    const COMPETITION_END = '2026-08-01';
+
+    let challengeId = null;
+    let participants = [];
+    let currentParticipantId = null;
+    let sleepLogs = [];
+    let exerciseLogs = [];
+    let bodyScores = [];
+    // let editingExerciseId = null;
+
+    const elDate = document.getElementById('person-date');
+    const elPersonList = document.getElementById('person-list');
+    const elSleep7h = document.getElementById('sleep-7h');
+    const elSleepHours = document.getElementById('sleep-hours');
+    const elSleepScore = document.getElementById('sleep-score');
+    elSleepHours.addEventListener('input', () => {
+  const hours = Number(elSleepHours.value);
+  if (elSleepHours.value !== '' && !Number.isNaN(hours) && hours > 7) {
+    elSleep7h.checked = true;
+  }
+});
+    const elExItem = document.getElementById('ex-item');
+    const elExCal = document.getElementById('ex-cal');
+    const elExList = document.getElementById('exercise-list');
+    const elTotalCal = document.getElementById('total-calories');
+    const elBodyFinal = document.getElementById('body-final-score');
+
+    function toLocalDateString(date) {
+      const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      return d.toISOString().split('T')[0];
+    }
+    function parseDate(str) {
+      const [y,m,d] = str.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+    function formatShortDate(str) {
+      const d = parseDate(str);
+      const w = ['日','一','二','三','四','五','六'][d.getDay()];
+      return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}(${w})`;
+    }
+    function getDateRange(start, end) {
+      const arr = [];
+      let cur = parseDate(start);
+      const last = parseDate(end);
+      while (cur <= last) {
+        arr.push(toLocalDateString(cur));
+        cur.setDate(cur.getDate() + 1);
+      }
+      return arr;
+    }
+    function getWeekStart(dateStr) {
+      const d = parseDate(dateStr);
+      const day = d.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      d.setDate(d.getDate() + diff);
+      return toLocalDateString(d);
+    }
+    function getWeekEnd(weekStartStr) {
+      const d = parseDate(weekStartStr);
+      d.setDate(d.getDate() + 6);
+      return toLocalDateString(d);
+    }
+    function getCompetitionWeeks(start, end) {
+      const weeks = [];
+      let current = getWeekStart(start);
+      while (current <= end) {
+        const weekEnd = getWeekEnd(current);
+        weeks.push({ start: current, end: weekEnd > end ? end : weekEnd });
+        const next = parseDate(current);
+        next.setDate(next.getDate() + 7);
+        current = toLocalDateString(next);
+      }
+      return weeks;
+    }
+    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+    function getParticipantName(id) {
+      return participants.find(p => p.id === id)?.name || '未知';
+    }
+    function isSleepPoint(log) {
+      if (!log) return 0;
+      return (log.slept_7h === true || Number(log.watch_score || 0) >= 80) ? 1 : 0;
+    }
+    function safeNumber(val) {
+      if (val === null || val === undefined || val === '') return null;
+      const num = Number(val);
+      return Number.isNaN(num) ? null : num;
+    }
+
+    function shiftCurrentDate(days) {
+  if (!elDate.value) return;
+  const d = parseDate(elDate.value);
+  d.setDate(d.getDate() + days);
+
+  const nextDate = toLocalDateString(d);
+  if (nextDate < COMPETITION_START || nextDate > COMPETITION_END) return;
+
+  elDate.value = nextDate;
+  loadDailyData();
+}
+
+    async function init() {
+      const today = new Date();
+      const localDate = toLocalDateString(today);
+      elDate.value = localDate < COMPETITION_START ? COMPETITION_START : (localDate > COMPETITION_END ? COMPETITION_END : localDate);
+
+      try {
+        const { data: chalData, error: chalErr } = await db.from('challenge').select('id').eq('name', CHALLENGE_NAME).single();
+        if (chalErr || !chalData) throw new Error('找不到第五屆活動');
+        challengeId = chalData.id;
+
+        const { data: partData, error: partErr } = await db.from('participants').select('id, name').eq('challenge_id', challengeId).order('created_at', { ascending: true });
+        if (partErr) throw partErr;
+        participants = partData || [];
+
+        renderPersonList();
+        if (participants.length > 0) selectPerson(participants[0].id);
+        await refreshSummaryData();
+      } catch (err) {
+        console.error(err);
+        alert('初始化失敗：' + err.message);
+      }
+    }
+
+    function renderPersonList() {
+      elPersonList.innerHTML = '';
+      participants.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = `chip-btn ${p.id === currentParticipantId ? 'active' : ''}`;
+        btn.textContent = p.name;
+        btn.onclick = () => selectPerson(p.id);
+        elPersonList.appendChild(btn);
+      });
+    }
+
+    function selectPerson(id) {
+      currentParticipantId = id;
+      editingExerciseId = null;
+      renderPersonList();
+      loadDailyData();
+      loadBodyScore();
+      loadParticipantHistory();
+    }
+
+    document.getElementById('btn-rename-person').onclick = async () => {
+      if (!currentParticipantId) return alert('請先選擇選手');
+      const currentName = getParticipantName(currentParticipantId);
+      const newName = prompt('請輸入新的選手名稱：', currentName);
+      if (newName === null) return;
+      const trimmed = newName.trim();
+      if (!trimmed) return alert('名稱不可空白');
+      const { error } = await db.from('participants').update({ name: trimmed }).eq('id', currentParticipantId);
+      if (error) {
+        console.error(error);
+        alert('修改名稱失敗');
+        return;
+      }
+      participants = participants.map(p => p.id === currentParticipantId ? { ...p, name: trimmed } : p);
+      renderPersonList();
+      await refreshSummaryData();
+    };
+
+    elDate.addEventListener('change', () => { if (currentParticipantId) loadDailyData(); });
+
+    document.getElementById('btn-prev-date').addEventListener('click', () => {
+  shiftCurrentDate(-1);
+});
+
+document.getElementById('btn-next-date').addEventListener('click', () => {
+  shiftCurrentDate(1);
+});
+
+document.getElementById('btn-today-date').addEventListener('click', () => {
+  const today = toLocalDateString(new Date());
+  const target = today < COMPETITION_START
+    ? COMPETITION_START
+    : (today > COMPETITION_END ? COMPETITION_END : today);
+
+  elDate.value = target;
+  loadDailyData();
+});
+
+    async function loadDailyData() {
+      const date = elDate.value;
+      const pid = currentParticipantId;
+      if (!pid || !date) return;
+      elSleep7h.checked = false;
+      elSleepHours.value = '';
+      elSleepScore.value = '';
+      elExList.innerHTML = '<div class="text-center text-muted small py-3">讀取中...</div>';
+      elTotalCal.textContent = '0 大卡';
+
+      try {
+        const { data: sleepData } = await db.from('sleep_logs').select('*').eq('participant_id', pid).eq('log_date', date).maybeSingle();
+        if (sleepData) {
+          elSleep7h.checked = sleepData.slept_7h;
+          elSleepHours.value = sleepData.sleep_hours ?? '';
+          elSleepScore.value = sleepData.watch_score ?? '';
+        }
+        const { data: exData } = await db.from('exercise_logs').select('*').eq('participant_id', pid).eq('log_date', date).order('created_at', { ascending: true });
+        renderExerciseList(exData || []);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    document.getElementById('btn-save-sleep').onclick = async () => {
+  const date = elDate.value;
+  const pid = currentParticipantId;
+  if (!pid || !date) return alert('請先選擇選手與日期');
+
+  const btn = document.getElementById('btn-save-sleep');
+  const sleepHours = safeNumber(elSleepHours.value);
+  const watchScore = safeNumber(elSleepScore.value);
+
+  if (sleepHours !== null && sleepHours > 7) {
+    elSleep7h.checked = true;
+  }
+
+  btn.textContent = '儲存中...';
+  btn.disabled = true;
+
+  const payload = {
+    participant_id: pid,
+    log_date: date,
+    slept_7h: elSleep7h.checked,
+    sleep_hours: sleepHours,
+    watch_score: watchScore
+  };
+
+  const { error } = await db.from('sleep_logs').upsert(payload, {
+    onConflict: 'participant_id,log_date'
+  });
+
+  btn.disabled = false;
+
+  if (error) {
+    console.error(error);
+    alert('儲存失敗，請稍後再試');
+    btn.textContent = '儲存睡眠紀錄';
+  } else {
+    let successText = '儲存成功';
+
+    if (watchScore !== null && watchScore >= 80) {
+  successText = '睡滿80分看來是一夜好眠呢🛏️';
+  btn.style.color = '#ffffff';
+} else if (elSleep7h.checked) {
+  successText = '好棒！今天有睡飽哦😪';
+  btn.style.color = '#ffffff';
+} else {
+  btn.style.color = '';
+}
+
+btn.textContent = successText;
+
+setTimeout(() => {
+  btn.textContent = '儲存睡眠紀錄';
+  btn.style.color = '';
+}, 1600);
+
+    await loadParticipantHistory();
+    await refreshSummaryData();
+  }
+};
+
+    function renderExerciseList(list) {
+      elExList.innerHTML = '';
+      let total = 0;
+      if (list.length === 0) {
+        elExList.innerHTML = '<div class="text-center text-muted small py-4" style="background:#f8fafc;border-radius:16px;">今日尚無運動紀錄</div>';
+      } else {
+        list.forEach(ex => {
+          total += parseFloat(ex.calories || 0);
+          const div = document.createElement('div');
+          div.className = 'exercise-item';
+          const isEditing = editingExerciseId === ex.id;
+          if (isEditing) {
+            div.innerHTML = `
+              <div class="row g-2">
+                <div class="col-7"><input type="text" class="form-control" id="edit-item-${ex.id}" value="${(ex.item_name || '').replace(/"/g, '&quot;')}"></div>
+                <div class="col-5"><input type="number" class="form-control" id="edit-cal-${ex.id}" value="${ex.calories}" step="0.1"></div>
+              </div>
+              <div class="exercise-actions">
+                <button class="btn-edit-mini" onclick="saveExerciseEdit('${ex.id}')">儲存</button>
+                <button class="btn-del-mini" onclick="cancelExerciseEdit()">取消</button>
+              </div>
+            `;
+          } else {
+            div.innerHTML = `
+              <div>
+                <div class="fw-bold" style="color:var(--calorie-dark)">${ex.item_name}</div>
+                <div class="text-muted small mt-1">🔥 ${Number(ex.calories).toFixed(0)} 大卡</div>
+              </div>
+              <div class="exercise-actions">
+                <button class="btn-edit-mini" onclick="startEditExercise('${ex.id}')">編輯</button>
+                <button class="btn-del-mini" onclick="deleteExercise('${ex.id}')">刪除</button>
+              </div>
+            `;
+          }
+          elExList.appendChild(div);
+        });
+      }
+      elTotalCal.textContent = `${total.toFixed(0)} 大卡`;
+    }
+
+    document.getElementById('btn-add-exercise').onclick = async () => {
+      const date = elDate.value;
+      const pid = currentParticipantId;
+      const name = elExItem.value.trim();
+      const cal = elExCal.value;
+      if (!pid || !date) return alert('請選擇選手與日期');
+      if (!name || !cal) return alert('請填寫項目與卡路里');
+      const btn = document.getElementById('btn-add-exercise');
+      btn.textContent = '新增中...';
+      btn.disabled = true;
+      const { error } = await db.from('exercise_logs').insert({ participant_id: pid, log_date: date, item_name: name, calories: parseFloat(cal) });
+      btn.disabled = false;
+      btn.textContent = '➕ 記錄這筆運動';
+      if (error) {
+        console.error(error);
+        alert('新增失敗');
+      } else {
+        elExItem.value = '';
+        elExCal.value = '';
+        await loadDailyData();
+        await loadParticipantHistory();
+        await refreshSummaryData();
+      }
+    };
+
+    window.startEditExercise = async (id) => {
+      editingExerciseId = id;
+      await loadDailyData();
+    };
+    window.cancelExerciseEdit = async () => {
+      editingExerciseId = null;
+      await loadDailyData();
+    };
+    window.saveExerciseEdit = async (id) => {
+      const name = document.getElementById(`edit-item-${id}`)?.value.trim();
+      const cal = document.getElementById(`edit-cal-${id}`)?.value;
+      if (!name || !cal) return alert('請填完整運動名稱與卡路里');
+      const { error } = await db.from('exercise_logs').update({ item_name: name, calories: parseFloat(cal) }).eq('id', id);
+      if (error) {
+        console.error(error);
+        alert('更新失敗');
+      } else {
+        editingExerciseId = null;
+        await loadDailyData();
+        await loadParticipantHistory();
+        await refreshSummaryData();
+      }
+    };
+    window.deleteExercise = async (id) => {
+      if (!confirm('確定要刪除這筆紀錄嗎？')) return;
+      const { error } = await db.from('exercise_logs').delete().eq('id', id);
+      if (error) alert('刪除失敗');
+      else {
+        editingExerciseId = null;
+        await loadDailyData();
+        await loadParticipantHistory();
+        await refreshSummaryData();
+      }
+    };
+
+    async function loadParticipantHistory() {
+  const pid = currentParticipantId;
+  const tbody = document.getElementById('history-body');
+  if (!pid || !tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">讀取中...</td></tr>';
+
+  try {
+    const [{ data: sleeps }, { data: exercises }] = await Promise.all([
+      db.from('sleep_logs')
+        .select('log_date, slept_7h, sleep_hours, watch_score')
+        .eq('participant_id', pid)
+        .gte('log_date', COMPETITION_START)
+        .lte('log_date', COMPETITION_END)
+        .order('log_date', { ascending: false }),
+
+      db.from('exercise_logs')
+        .select('log_date, item_name, calories')
+        .eq('participant_id', pid)
+        .gte('log_date', COMPETITION_START)
+        .lte('log_date', COMPETITION_END)
+        .order('log_date', { ascending: false })
+    ]);
+
+    const sleepMap = {};
+    (sleeps || []).forEach(s => {
+      sleepMap[s.log_date] = s;
+    });
+
+    const exMap = {};
+    (exercises || []).forEach(ex => {
+      if (!exMap[ex.log_date]) exMap[ex.log_date] = [];
+      exMap[ex.log_date].push(ex);
+    });
+
+    const allDates = Array.from(new Set([
+      ...Object.keys(sleepMap),
+      ...Object.keys(exMap)
+    ])).sort((a, b) => b.localeCompare(a));
+
+    if (allDates.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">尚無歷史紀錄</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = allDates.map(date => {
+      const s = sleepMap[date];
+      const exList = exMap[date] || [];
+      const exNames = exList.map(ex => `${ex.item_name} (${Number(ex.calories).toFixed(0)})`).join('、');
+      const totalCal = exList.reduce((sum, ex) => sum + Number(ex.calories || 0), 0);
+
+      return `
+        <tr>
+          <td class="text-start ps-3 fw-bold">${formatShortDate(date)}</td>
+          <td>${s?.slept_7h ? '✅' : '—'}</td>
+          <td>${s?.sleep_hours ?? '—'}</td>
+          <td>${s?.watch_score ?? '—'}</td>
+          <td>${exNames || '—'}</td>
+          <td class="pe-3">${totalCal ? totalCal.toFixed(0) : '—'}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error(e);
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">歷史紀錄載入失敗</td></tr>';
+  }
+}
+
+    async function loadBodyScore() {
+      const pid = currentParticipantId;
+      if (!pid) return;
+      elBodyFinal.value = '';
+      const { data } = await db.from('body_scores').select('final_score').eq('participant_id', pid).maybeSingle();
+      if (data) elBodyFinal.value = data.final_score;
+    }
+
+    document.getElementById('btn-save-body').onclick = async () => {
+      const pid = currentParticipantId;
+      const score = elBodyFinal.value;
+      if (!pid) return;
+      if (score === '') return alert('請填寫分數');
+      const btn = document.getElementById('btn-save-body');
+      const ogText = btn.textContent;
+      btn.textContent = '...';
+      const { error } = await db.from('body_scores').upsert({ participant_id: pid, final_score: parseFloat(score) }, { onConflict: 'participant_id' });
+      if (error) {
+        console.error(error);
+        alert('儲存失敗');
+        btn.textContent = ogText;
+      } else {
+        btn.textContent = '✅';
+        setTimeout(() => btn.textContent = ogText, 1600);
+        await refreshSummaryData();
+      }
+    };
+
+    async function refreshSummaryData() {
+      if (!challengeId) return;
+      try {
+        const [{ data: sleeps }, { data: exercises }, { data: bodies }] = await Promise.all([
+          db.from('sleep_logs').select('participant_id, log_date, slept_7h, watch_score, sleep_hours').gte('log_date', COMPETITION_START).lte('log_date', COMPETITION_END),
+          db.from('exercise_logs').select('id, participant_id, log_date, item_name, calories').gte('log_date', COMPETITION_START).lte('log_date', COMPETITION_END),
+          db.from('body_scores').select('participant_id, final_score')
+        ]);
+        sleepLogs = sleeps || [];
+        exerciseLogs = exercises || [];
+        bodyScores = bodies || [];
+        renderLeaderboard();
+        renderDailyScoreTable();
+        renderSleepKingsInTable();
+        renderWeeklyCalorieStatus();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function buildSummaryStats() {
+      const weeks = getCompetitionWeeks(COMPETITION_START, COMPETITION_END);
+      const sleepMap = new Map();
+      sleepLogs.forEach(log => sleepMap.set(`${log.participant_id}__${log.log_date}`, log));
+      const exWeekMap = {};
+      exerciseLogs.forEach(ex => {
+        const weekStart = getWeekStart(ex.log_date);
+        const key = `${ex.participant_id}__${weekStart}`;
+        exWeekMap[key] = (exWeekMap[key] || 0) + Number(ex.calories || 0);
+      });
+      const bodyMap = {};
+      bodyScores.forEach(b => bodyMap[b.participant_id] = Number(b.final_score || 0));
+
+      return participants.map(p => {
+        let sleepTotal = 0;
+        let calorieTotal = 0;
+        weeks.forEach(week => {
+          const dates = getDateRange(week.start, week.end);
+          let weeklySleep = 0;
+          dates.forEach(date => {
+            const log = sleepMap.get(`${p.id}__${date}`);
+            weeklySleep += isSleepPoint(log);
+          });
+          sleepTotal += clamp(weeklySleep, 0, 5);
+          const weeklyCalories = exWeekMap[`${p.id}__${week.start}`] || 0;
+          calorieTotal += clamp(Math.floor(weeklyCalories / 500), 0, 4);
+        });
+        const bodyScore = bodyMap[p.id] || 0;
+        return { participant_id: p.id, name: p.name, sleepTotal, calorieTotal, bodyScore, grandTotal: sleepTotal + calorieTotal + bodyScore };
+      }).sort((a,b) => b.grandTotal - a.grandTotal || b.calorieTotal - a.calorieTotal || b.sleepTotal - a.sleepTotal || a.name.localeCompare(b.name, 'zh-Hant'));
+    }
+
+    function renderLeaderboard() {
+      const tbody = document.getElementById('leaderboard-body');
+      const rows = buildSummaryStats();
+      tbody.innerHTML = '';
+      rows.forEach(st => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-start ps-3 fw-bold sticky-col" style="color:#0f172a;">${st.name}</td>
+          <td><span class="score-badge badge-sleep">${st.sleepTotal}</span></td>
+          <td><span class="score-badge badge-cal">${st.calorieTotal}</span></td>
+          <td><span class="score-badge badge-total">${st.bodyScore}</span></td>
+          <td class="pe-3"><span class="score-badge total-day">${st.grandTotal}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderDailyScoreTable() {
+      const head = document.getElementById('daily-score-head');
+      const body = document.getElementById('daily-score-body');
+      const dates = getDateRange(COMPETITION_START, COMPETITION_END);
+      const sleepMap = new Map();
+      sleepLogs.forEach(log => sleepMap.set(`${log.participant_id}__${log.log_date}`, log));
+      const exByParticipantDate = {};
+      exerciseLogs.forEach(ex => {
+        const key = `${ex.participant_id}__${ex.log_date}`;
+        exByParticipantDate[key] = (exByParticipantDate[key] || 0) + Number(ex.calories || 0);
+      });
+
+      head.innerHTML = `<tr><th class="text-start ps-3 sticky-head">選手</th>${dates.map(d => `<th>${formatShortDate(d)}</th>`).join('')}</tr>`;
+      body.innerHTML = '';
+
+      participants.forEach(p => {
+        let weeklyRunningCal = 0;
+        let currentWeekStart = null;
+        const tr = document.createElement('tr');
+        let cells = `<td class="text-start ps-3 fw-bold sticky-col">${p.name}</td>`;
+        dates.forEach(date => {
+          const weekStart = getWeekStart(date);
+          if (currentWeekStart !== weekStart) {
+            currentWeekStart = weekStart;
+            weeklyRunningCal = 0;
+          }
+          const todayCal = exByParticipantDate[`${p.id}__${date}`] || 0;
+          weeklyRunningCal += todayCal;
+          const calPoint = clamp(Math.floor(weeklyRunningCal / 500), 0, 4);
+          const sleepPoint = isSleepPoint(sleepMap.get(`${p.id}__${date}`));
+          const displayTotal = sleepPoint + calPoint;
+          const totalClass = displayTotal >= 3 ? 'total-day' : 'total-day-low';
+          cells += `
+            <td class="day-score-cell">
+              <div class="day-score-wrap">
+                <span class="day-pill ${sleepPoint ? 'sleep-hit' : 'sleep-miss'}">睡 ${sleepPoint}</span>
+                <span class="day-pill cal-progress">動 ${calPoint}</span>
+                <span class="day-pill ${totalClass}">總 ${displayTotal}</span>
+              </div>
+            </td>
+          `;
+        });
+        tr.innerHTML = cells;
+        body.appendChild(tr);
+      });
+    }
+
+    // function renderSleepKings() {
+    //   const wrap = document.getElementById('sleep-king-list');
+    //   const dates = getDateRange(COMPETITION_START, COMPETITION_END);
+    //   wrap.innerHTML = '';
+    //   dates.forEach(date => {
+    //     const candidates = sleepLogs.filter(log => log.log_date === date && log.watch_score !== null && log.watch_score !== undefined && log.watch_score !== '');
+    //     if (candidates.length === 0) return;
+    //     const maxScore = Math.max(...candidates.map(c => Number(c.watch_score || 0)));
+    //     const kings = candidates.filter(c => Number(c.watch_score || 0) === maxScore);
+    //     const div = document.createElement('div');
+    //     div.className = 'king-card';
+    //     div.innerHTML = `
+    //       <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+    //         <div>
+    //           <div class="fw-bold">${formatShortDate(date)}</div>
+    //           <div class="mini-note mt-1">當日手錶睡眠分數最高者</div>
+    //         </div>
+    //         <div class="text-end">
+    //           <div class="king-name">${kings.map(k => getParticipantName(k.participant_id)).join('、')}</div>
+    //           <div class="mini-note">${maxScore} 分</div>
+    //         </div>
+    //       </div>
+    //     `;
+    //     wrap.appendChild(div);
+    //   });
+    //   if (!wrap.innerHTML) wrap.innerHTML = '<div class="text-muted small">目前尚無可判定的每日睡眠王資料。</div>';
+    // }
+    function renderSleepKingsInTable() {
+  const foot = document.getElementById('daily-score-foot');
+  const dates = getDateRange(COMPETITION_START, COMPETITION_END);
+  let cells = `<tr><td class="text-start ps-3 fw-bold sticky-col">👑 每日睡眠王</td>`;
+
+  dates.forEach(date => {
+    const candidates = sleepLogs.filter(
+      log => log.log_date === date && log.watch_score !== null && log.watch_score !== undefined && log.watch_score !== ''
+    );
+
+    if (candidates.length === 0) {
+      cells += `<td class="day-score-cell"><div class="mini-note">—</div></td>`;
+      return;
+    }
+
+    const maxScore = Math.max(...candidates.map(c => Number(c.watch_score || 0)));
+    const kings = candidates.filter(c => Number(c.watch_score || 0) === maxScore);
+
+    cells += `
+      <td class="day-score-cell">
+        <div class="day-score-wrap">
+          <span class="day-pill total-day">${maxScore}</span>
+          <div class="mini-note">${kings.map(k => getParticipantName(k.participant_id)).join('、')}</div>
+        </div>
+      </td>
+    `;
+  });
+
+  cells += `</tr>`;
+  foot.innerHTML = cells;
+}
+
+
+    function renderWeeklyCalorieStatus() {
+      const wrap = document.getElementById('weekly-calorie-list');
+      const weeks = getCompetitionWeeks(COMPETITION_START, COMPETITION_END);
+      wrap.innerHTML = '';
+      weeks.forEach(week => {
+        const card = document.createElement('div');
+        card.className = 'week-card';
+        const rows = participants.map(p => {
+          const total = exerciseLogs.filter(ex => ex.participant_id === p.id && ex.log_date >= week.start && ex.log_date <= week.end)
+            .reduce((sum, ex) => sum + Number(ex.calories || 0), 0);
+          const points = clamp(Math.floor(total / 500), 0, 4);
+          const reached = total >= 2000;
+          return `
+            <div class="week-player-row">
+              <div>
+                <div class="fw-bold">${p.name}</div>
+                <div class="progress-note">${total.toFixed(0)} / 2000 kcal</div>
+              </div>
+              <div class="text-end">
+                <div class="week-pill ${reached ? 'total-day' : 'cal-progress'}">${points} 分</div>
+                <div class="progress-note">${reached ? '已達本週上限 +4' : `距離滿分還差 ${(2000 - total > 0 ? (2000 - total).toFixed(0) : 0)} kcal`}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+        card.innerHTML = `
+          <div class="week-topline">
+            <div>
+              <div class="fw-bold">${formatShortDate(week.start)} ～ ${formatShortDate(week.end)}</div>
+              <div class="mini-note">每週一到週日累積，每滿 500 卡得 1 分，上限 4 分</div>
+            </div>
+            <span class="week-pill badge-cal">週摘要</span>
+          </div>
+          ${rows}
+        `;
+        wrap.appendChild(card);
+      });
+    }
+
+    document.getElementById('btn-refresh-leaderboard').onclick = refreshSummaryData;
+    document.getElementById('tab-summary').addEventListener('shown.bs.tab', refreshSummaryData);
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
